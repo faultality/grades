@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grading Formulas & Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 850px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .subject-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .subject-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .formula-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .formula-display.active {
+            display: block;
+        }
+
+        .formula-display h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            text-align: center;
+        }
+
+        .formula-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+            font-size: 1.05em;
+            line-height: 1.7;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        .total-grade {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #ccc;
+            font-weight: bold;
+            color: #764ba2;
+            font-size: 1.1em;
+        }
+
+        /* Calculator Styles */
+        .calculator-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .calculator-container h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.4em;
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .grade-input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            width: 100%;
+        }
+
+        .grade-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-label {
+            color: #555;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 1.5em;
+        }
+
+        .grade-a { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .grade-b { background: #fff3cd; color: #856404; border: 2px solid #ffeeba; }
+        .grade-c { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .close-btn:hover {
+            background: #c82333;
+        }
+        
+        .note {
+            font-size: 0.85em;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grading Formulas & Calculator</h1>
+        
+        <div class="subjects-grid">
+            <button class="subject-btn" onclick="showSubject('TSnPDA')">TSnPDA</button>
+            <button class="subject-btn" onclick="showSubject('Invest')">Invest</button>
+            <button class="subject-btn" onclick="showSubject('Indust')">Indust</button>
+            <button class="subject-btn" onclick="showSubject('Quant')">Quant</button>
+            <button class="subject-btn" onclick="showSubject('Corp')">Corp</button>
+        </div>
+
+        <div id="subjectDisplay" class="formula-display">
+            <h2 id="subjectTitle"></h2>
+            <div id="formulaContent" class="formula-content"></div>
+            
+            <div class="calculator-container">
+                <h3>🧮 Expected Grade Calculator</h3>
+                <div id="inputsGrid" class="inputs-grid"></div>
+                <button class="calc-btn" onclick="calculateGrade()">Calculate Expected Grade</button>
+                <div id="resultBox" class="result-box"></div>
+                <p class="note">* Leave fields blank or 0 if the assessment hasn't been taken yet.</p>
+            </div>
+
+            <button class="close-btn" onclick="closeSubject()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Formulas text
+        const formulas = {
+            'TSnPDA': `Your final grade consists of the following components:<br><br>
+            • <b>Home assignments</b> (2 on TSA and 2 on PDA): 15%<br>
+            • <b>Midterm</b>: 20%<br>
+            • <b>Project</b>: 15%<br>
+            • <b>Final</b>: 50%<br>
+            • <b>Bonus</b>: participation in class sections (≤5% of the total grade to top 10%)<br>
+            <div class="total-grade">Total: 100% (+ up to 5% bonus)</div>`,
+
+            'Invest': `Your final course grade consists of:<br><br>
+            • <b>1st semester written assessment</b> (modules 1-2): 20%<br>
+            • <b>Homework Assignments</b> (modules 1-4): 18%<br>
+            • <b>Class assignments, quizzes, attendance & participation</b> (modules 1-4): 12%<br>
+            • <b>Final Exam</b> (modules 3-4): 50%<br>
+            <div class="total-grade">Total: 100%</div>`,
+
+            'Indust': `Your final grade consists of the following components:<br><br>
+            • <b>Home Assignments (HAs)</b>: 15%<br>
+            • <b>Midterm</b>: 20%<br>
+            • <b>Winter test</b>: 22%<br>
+            • <b>Final exam</b>: 40%<br>
+            • <b>Quizzes</b>: 3%<br>
+            <div class="total-grade">Total: 100%</div>`,
+
+            'Quant': `Your overall grade consists of:<br><br>
+            • <b>All home assignments</b> during the year: 10%<br>
+            • <b>Fall Mock</b>: 10%<br>
+            • <b>Winter Mock</b>: 20%<br>
+            • <b>Final Exam</b> (April): 60%<br>
+            <div class="total-grade">Total: 100%</div>`,
+
+            'Corp': `Your final grade consists of the following components:<br><br>
+            • <b>Final Exam</b>: 50%<br>
+            • <b>Midterm 2</b>: 15%<br>
+            • <b>Home Assignments (HA)</b>: 10%<br>
+            • <b>Group Assignment 2</b>: 10%<br>
+            • <b>Midterm 1</b>: 10%<br>
+            • <b>Group Assignment 1</b>: 5%<br>
+            <div class="total-grade">Total: 100%</div>`
+        };
+
+        // Calculator data structure
+        const calcData = {
+            'TSnPDA': [
+                { name: 'Home Assignments (0-100)', weight: 15 },
+                { name: 'Midterm (0-100)', weight: 20 },
+                { name: 'Project (0-100)', weight: 15 },
+                { name: 'Final Exam (0-100)', weight: 50 },
+                { name: 'Bonus Points (0-5)', weight: 5, isBonus: true }
+            ],
+            'Invest': [
+                { name: '1st Sem Written Assessment (0-100)', weight: 20 },
+                { name: 'Homework Assignments (0-100)', weight: 18 },
+                { name: 'Class Assignments & Quizzes (0-100)', weight: 12 },
+                { name: 'Final Exam (0-100)', weight: 50 }
+            ],
+            'Indust': [
+                { name: 'Home Assignments (0-100)', weight: 15 },
+                { name: 'Midterm (0-100)', weight: 20 },
+                { name: 'Winter Test (0-100)', weight: 22 },
+                { name: 'Final Exam (0-100)', weight: 40 },
+                { name: 'Quizzes (0-100)', weight: 3 }
+            ],
+            'Quant': [
+                { name: 'Home Assignments (0-100)', weight: 10 },
+                { name: 'Fall Mock (0-100)', weight: 10 },
+                { name: 'Winter Mock (0-100)', weight: 20 },
+                { name: 'Final Exam (0-100)', weight: 60 }
+            ],
+            'Corp': [
+                { name: 'Final Exam (0-100)', weight: 50 },
+                { name: 'Midterm 2 (0-100)', weight: 15 },
+                { name: 'Home Assignments (0-100)', weight: 10 },
+                { name: 'Group Assignment 2 (0-100)', weight: 10 },
+                { name: 'Midterm 1 (0-100)', weight: 10 },
+                { name: 'Group Assignment 1 (0-100)', weight: 5 }
+            ]
+        };
+
+        let currentSubject = '';
+
+        function showSubject(subject) {
+            currentSubject = subject;
+            const display = document.getElementById('subjectDisplay');
+            const title = document.getElementById('subjectTitle');
+            const content = document.getElementById('formulaContent');
+            const grid = document.getElementById('inputsGrid');
+            const resultBox = document.getElementById('resultBox');
+
+            // Set formula
+            title.textContent = `${subject} - Grading Formula`;
+            content.innerHTML = formulas[subject];
+
+            // Generate calculator inputs
+            let inputsHtml = '';
+            calcData[subject].forEach((comp, index) => {
+                const maxVal = comp.isBonus ? 5 : 100;
+                const placeholder = comp.isBonus ? '0-5' : '0-100';
+                inputsHtml += `
+                    <div class="input-group">
+                        <label for="input_${index}">${comp.name} <span style="color:#999">(${comp.weight}%)</span></label>
+                        <input type="number" id="input_${index}" class="grade-input" min="0" max="${maxVal}" placeholder="${placeholder}" data-index="${index}">
+                    </div>
+                `;
+            });
+            grid.innerHTML = inputsHtml;
+
+            // Reset result
+            resultBox.className = 'result-box';
+            resultBox.innerHTML = '';
+
+            // Show display
+            display.classList.add('active');
+            display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function calculateGrade() {
+            const data = calcData[currentSubject];
+            let total = 0;
+
+            data.forEach((comp, index) => {
+                const input = document.getElementById(`input_${index}`);
+                let val = parseFloat(input.value);
+                
+                if (isNaN(val)) val = 0;
+                
+                // Prevent negative or over-max inputs
+                const maxVal = comp.isBonus ? 5 : 100;
+                if (val < 0) val = 0;
+                if (val > maxVal) val = maxVal;
+
+                if (comp.isBonus) {
+                    total += val; // Bonus is added as raw points
+                } else {
+                    total += val * (comp.weight / 100);
+                }
+            });
+
+            // Cap display at 100, but keep actual total for logic if needed
+            const displayTotal = Math.min(total, 100).toFixed(2);
+            const resultBox = document.getElementById('resultBox');
+            
+            resultBox.innerHTML = `<span class="result-label">Your Expected Grade:</span> <span class="result-value">${displayTotal}</span> / 100`;
+            
+            // Color coding based on grade
+            if (total >= 80) {
+                resultBox.className = 'result-box show grade-a';
+            } else if (total >= 60) {
+                resultBox.className = 'result-box show grade-b';
+            } else {
+                resultBox.className = 'result-box show grade-c';
+            }
+        }
+
+        function closeSubject() {
+            const display = document.getElementById('subjectDisplay');
+            display.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
